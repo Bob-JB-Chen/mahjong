@@ -3,62 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MAHJONG ZEN</title>
+<title>MAHJONG ZEN - INK EDITION</title>
 <style>
-:root { --t-w: 62px; --t-h: 84px; --zen-bg: #1c1917; --ivory: #fdfaf1; --gold: #d97706; }
-body { margin: 0; background: var(--zen-bg); font-family: "Georgia", serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; color: #d6d3d1; }
-header { padding: 25px; text-align: center; background: rgba(0,0,0,0.3); border-bottom: 1px solid #333; }
-.zen-title { font-size: 26px; font-weight: 300; letter-spacing: 6px; color: #fff; margin-bottom: 5px; }
+:root { --t-w: 62px; --t-h: 84px; --zen-bg: #121212; --ivory: #fcfaf2; --gold: #c2902d; }
+body { margin: 0; background: var(--zen-bg); font-family: "Times New Roman", serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; color: #e5e5e5; }
+header { padding: 20px; text-align: center; background: rgba(0,0,0,0.5); border-bottom: 1px solid #222; }
+.zen-title { font-size: 24px; font-weight: 200; letter-spacing: 8px; color: #fff; }
 #game-area { position: relative; flex-grow: 1; display: flex; justify-content: center; align-items: center; perspective: 1500px; }
 #board { position: relative; width: 400px; height: 500px; transform: rotateX(10deg); transform-style: preserve-3d; }
 
-/* 瓷砖重塑：统一视觉风格 */
-.tile { position: absolute; width: var(--t-w); height: var(--t-h); background: var(--ivory); border-radius: 5px;
+.tile { position: absolute; width: var(--t-w); height: var(--t-h); background: var(--ivory); border-radius: 4px;
 display: flex; justify-content: center; align-items: center; cursor: pointer;
-border: 1px solid #c8c0b0;
-/* 3D 侧边质感 */
-box-shadow: 0 1px 0 #d1d5db, 1px 2px 0 #c8c0b0, 2px 3px 0 #b0a898, 4px 8px 20px rgba(0,0,0,0.8);
-transition: all 0.2s ease-out; }
+border: 1.5px solid #222;
+box-shadow: 0 1px 0 #d1d5db, 1px 2px 0 #bbb, 2px 3px 0 #999, 4px 10px 25px rgba(0,0,0,0.9);
+transition: all 0.2s ease; }
 
-/* 解决“中”字风格不统一的核心：使用 text-shadow 提取符号，滤掉自带背景 */
-.tile .symbol { font-size: 52px; line-height: 1; user-select: none; }
-/* 专门对红中进行调色，确保其与整体和风一致 */
-.tile[data-v="🀄"] .symbol { color: #b91c1c; }
+/* 核心修改：强制黑白，将灰色变为纯黑 */
+.tile .symbol {
+font-size: 54px;
+line-height: 1;
+user-select: none;
+/* 关键滤镜：去色 + 极高对比度，使灰色变黑 */
+filter: grayscale(100%) brightness(0) contrast(1000%);
+opacity: 0.9;
+}
 
-.tile.selected { background: #fff; transform: translateZ(30px) translateY(-5px); box-shadow: 0 15px 40px rgba(217,119,6,0.3); border-color: var(--gold); }
-.tile.locked { filter: contrast(0.7) brightness(0.3); cursor: not-allowed; opacity: 0.6; }
-.tile.hint { box-shadow: 0 0 15px var(--gold); border: 2px solid var(--gold); }
+.tile.selected { background: #fff; transform: translateZ(35px) scale(1.05); box-shadow: 0 20px 50px rgba(255,255,255,0.2); border-color: var(--gold); }
+.tile.locked { filter: grayscale(100%) brightness(0.2); cursor: not-allowed; opacity: 0.5; }
+.tile.hint { outline: 4px solid var(--gold); box-shadow: 0 0 20px var(--gold); }
 
-footer { padding: 40px; display: flex; justify-content: center; gap: 20px; }
-.zen-btn { padding: 12px 30px; background: transparent; border: 1px solid #444; color: #888; font-size: 13px; letter-spacing: 3px; cursor: pointer; transition: 0.3s; }
-.zen-btn:hover { color: #fff; border-color: #777; }
+footer { padding: 35px; display: flex; justify-content: center; gap: 20px; background: #000; }
+.zen-btn { padding: 12px 35px; background: transparent; border: 1px solid #333; color: #666; font-size: 12px; letter-spacing: 4px; cursor: pointer; transition: 0.3s; }
+.zen-btn:hover { color: #fff; border-color: #fcfaf2; }
 </style>
 </head>
 <body>
 <header>
 <div class="zen-title">MAHJONG ZEN</div>
-<div style="font-size: 12px; letter-spacing: 2px; color: #57534e;">TILES REMAINING: <span id="count">0</span></div>
+<div style="font-size: 11px; letter-spacing: 3px; color: #444; margin-top:5px;">REMAINING: <span id="count">0</span></div>
 </header>
 <div id="game-area"><div id="board"></div></div>
 <footer>
 <button class="zen-btn" onclick="undo()">UNDO</button>
 <button class="zen-btn" onclick="showHint()">HINT</button>
-<button class="zen-btn" onclick="init()">NEW SESSION</button>
+<button class="zen-btn" onclick="init()">RESET</button>
 </footer>
 <script>
 const board = document.getElementById('board');
 const countEl = document.getElementById('count');
-// 优化后的牌组，确保视觉风格可控
 const mahjongs = ['🀄','🀅','🀆','🀇','🀈','🀉','🀊','🀋','🀌','🀝','🀞','🀟','🀐','🀑','🀒','🀓','🀔','🀕','🀖','🀗','🀙','🀚','🀛'];
 let selected = null; let all = []; let history = [];
-
 function playSound(f) {
+try {
 const c = new(window.AudioContext||window.webkitAudioContext)();
 const o = c.createOscillator(); const g = c.createGain();
 o.frequency.value = f; g.gain.value = 0.01; o.connect(g); g.connect(c.destination);
-o.start(); o.stop(c.currentTime+0.1);
+o.start(); o.stop(c.currentTime+0.05);
+} catch(e){}
 }
-
 function isLocked(t) {
 const {r,c,l} = t.dataset;
 const up = all.some(o => o.dataset.l > l && Math.abs(o.dataset.r-r)<0.7 && Math.abs(o.dataset.c-c)<0.7);
@@ -67,18 +69,14 @@ const left = all.some(o => o.dataset.l == l && Math.abs(o.dataset.r-r)<0.5 && o.
 const right = all.some(o => o.dataset.l == l && Math.abs(o.dataset.r-r)<0.5 && o.dataset.c > c && o.dataset.c < c+1.1);
 return left && right;
 }
-
-function refresh() {
-all.forEach(t => { t.classList.remove('hint'); t.classList.toggle('locked', isLocked(t)); });
+function refresh() {all.forEach(t => { t.classList.remove('hint'); t.classList.toggle('locked', isLocked(t)); });
 countEl.innerText = all.length;
 }
-
 function undo() {
 if(!history.length) return;
 const last = history.pop(); last.forEach(t => { board.appendChild(t); all.push(t); });
 playSound(300); refresh();
 }
-
 function showHint() {
 const free = all.filter(t => !isLocked(t));
 for(let i=0; i<free.length; i++) {
@@ -89,7 +87,6 @@ free[i].classList.add('hint'); free[j].classList.add('hint'); return;
 }
 }
 }
-
 function handle(t) {
 if (t.classList.contains('locked')) return;
 if (selected === t) { t.classList.remove('selected'); selected = null; return; }
@@ -98,24 +95,20 @@ if (selected) {
 if (selected.dataset.v === t.dataset.v) {
 history.push([selected, t]); t.remove(); selected.remove();
 all = all.filter(x => x!==t && x!==selected);
-selected = null; playSound(700); refresh();
+selected = null; playSound(800); refresh();
 } else { selected.classList.remove('selected'); t.classList.add('selected'); selected = t; }
 } else { t.classList.add('selected'); selected = t; }
 }
-
 function init() {
 board.innerHTML = ''; all = []; history = [];
 const layout = [];
-// 高级金字塔布局
 for(let r=0;r<6;r++) for(let c=0;c<4;c++) layout.push({r,c,l:0});
 for(let r=1;r<5;r++) for(let c=1;c<3;c++) layout.push({r:r+0.2,c:c+0.2,l:1});
 for(let r=2;r<4;r++) layout.push({r:r+0.4,c:1.7,l:2});
-
 let pool = []; let n = Math.floor(layout.length/2);
 for(let i=0; i<n; i++) { const v = mahjongs[i % mahjongs.length]; pool.push(v,v); }
 if(layout.length % 2) pool.push(mahjongs[0]);
 pool.sort(() => Math.random() - 0.5);
-
 layout.forEach((p, i) => {
 const t = document.createElement('div'); t.className = 'tile';
 t.innerHTML = `<span class="symbol">${pool[i]}</span>`;
