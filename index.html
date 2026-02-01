@@ -11,30 +11,23 @@ header { padding: 20px; text-align: center; border-bottom: 1px solid #292524; ba
 .zen-title { font-size: 24px; font-weight: 200; letter-spacing: 10px; color: #fafaf9; }
 #game-area { position: relative; flex-grow: 1; display: flex; justify-content: center; align-items: center; perspective: 1200px; }
 #board { position: relative; width: 400px; height: 500px; transform: rotateX(10deg); transform-style: preserve-3d; }
-.tile { position: absolute; width: var(--t-w); height: var(--t-h); background: var(--ivory); border-radius: 4px; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1.5px solid #1c1917; box-shadow: 0 1px 0 #d6d3d1, 1px 2px 0 #d6d3d1, 2px 3px 0 #78716c, 4px 10px 25px rgba(0,0,0,0.8); transition: all 0.25s ease; }
+.tile { position: absolute; width: var(--t-w); height: var(--t-h); background: var(--ivory); border-radius: 4px; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1.5px solid #1c1917; box-shadow: 0 1px 0 #d6d3d1, 1px 2px 0 #d6d3d1, 2px 3px 0 #78716c, 4px 10px 25px rgba(0,0,0,0.8); transition: all 0.3s ease; }
 .tile .symbol { font-size: 56px; line-height: 0; user-select: none; filter: grayscale(1) brightness(0) contrast(1000%); opacity: 0.85; transform: translateY(-4px); display: inline-block; }
 .tile.selected { background: #fff; transform: translateZ(30px) scale(1.05); box-shadow: 0 20px 50px rgba(217,119,6,0.3); border-color: var(--gold); }
 .tile.locked { filter: contrast(0.5) brightness(0.2); cursor: not-allowed; opacity: 0.4; }
 .tile.hint { outline: 4px solid var(--gold); animation: pulse 1s infinite; }
 @keyframes pulse { 50% { opacity: 0.5; } }
 #onboarding-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-.step-box { max-width: 320px; padding: 40px; border: 1px solid #444; background: #1c1917; box-shadow: 0 0 50px rgba(0,0,0,1); }
+.step-box { max-width: 320px; padding: 40px; border: 1px solid #444; background: #1c1917; }
 .step-text { font-size: 18px; margin-bottom: 30px; letter-spacing: 2px; color: #d6d3d1; }
 .pulse-target { z-index: 2001 !important; box-shadow: 0 0 30px #fff !important; pointer-events: auto !important; }
 footer { padding: 30px; display: flex; justify-content: center; gap: 15px; }
 .zen-btn { padding: 10px 25px; background: transparent; border: 1px solid #444; color: #78716c; font-size: 12px; letter-spacing: 3px; cursor: pointer; transition: 0.3s; }
-.zen-btn:hover { color: #fafaf9; border-color: #a8a29e; background: rgba(255,255,255,0.05); }
-.btn-skip { margin-top: 15px; border: none; text-decoration: underline; font-size: 11px; opacity: 0.5; }
+.zen-btn:hover { color: #fafaf9; border-color: #a8a29e; }
 </style>
 </head>
 <body>
-<div id="onboarding-overlay" onclick="handleOverlayClick(event)">
-<div class="step-box">
-<div id="step-msg" class="step-text">Welcome to Mahjong Zen.</div>
-<button class="zen-btn" id="next-step">BEGIN</button>
-<button class="zen-btn btn-skip" onclick="skipAll()">Skip Tutorial</button>
-</div>
-</div>
+<div id="onboarding-overlay"><div class="step-box"><div id="step-msg" class="step-text">Welcome to Mahjong Zen.</div><button class="zen-btn" id="next-step">BEGIN</button><button class="zen-btn" style="border:none;font-size:10px;margin-top:10px" onclick="skipAll()">Skip Tutorial</button></div></div>
 <header><div class="zen-title">MAHJONG ZEN</div><div style="font-size: 11px; letter-spacing: 4px; margin-top:5px;">REMAINING: <span id="count">0</span></div></header>
 <div id="game-area"><div id="board"></div></div>
 <footer><button class="zen-btn" onclick="undo()">UNDO</button><button class="zen-btn" onclick="showHint()">HINT</button><button class="zen-btn" onclick="init()">RESET</button></footer>
@@ -63,24 +56,34 @@ const right = all.some(o => o.dataset.l == l && Math.abs(o.dataset.r-r)<0.5 && o
 return left && right;
 }
 
-function refresh() { all.forEach(t => t.classList.toggle('locked', isLocked(t))); countEl.innerText = all.length; }
+function hasAvailableMoves() {
+const free = all.filter(t => !isLocked(t));
+for(let i=0; i<free.length; i++) {
+for(let j=i+1; j<free.length; j++) {
+if(free[i].dataset.v === free[j].dataset.v) return true;
+}
+}
+return false;
+}
 
-function handleOverlayClick(e) { if(e.target.id === 'onboarding-overlay') nextStep(); }
-function skipAll() { localStorage.setItem('zenDone', '1'); overlay.style.display = 'none'; init(); }
+function reshuffle() {
+if(all.length === 0) return;
+playZenSound(200, "triangle", 1);
+let pool = all.map(t => t.dataset.v).sort(() => Math.random() - 0.5);
+all.forEach((t, i) => {
+t.dataset.v = pool[i];
+t.querySelector('.symbol').innerText = pool[i];
+});
+if(!hasAvailableMoves()) reshuffle(); // Ensure new layout is playable
+refresh();
+}
 
-function nextStep() {
-step++; playZenSound(200 + step * 50);
-if(step === 1) {
-stepMsg.innerText = "Match two free tiles to clear them.";
-document.getElementById('next-step').style.display = 'none';
-all.forEach(t => t.style.pointerEvents = 'none');
-const val = all.find(t => !isLocked(t)).dataset.v;
-all.filter(t => t.dataset.v === val).slice(0,2).forEach(t => { t.classList.add('pulse-target'); t.style.pointerEvents = 'auto'; });
-} else if(step === 2) {
-overlay.style.display = 'flex'; stepMsg.innerText = "Excellent. Locked tiles are dark. Free them by clearing neighbors.";
-document.getElementById('next-step').style.display = 'block';
-all.forEach(t => t.classList.remove('pulse-target'));
-} else { skipAll(); }
+function refresh() {
+all.forEach(t => { t.classList.remove('hint'); t.classList.toggle('locked', isLocked(t)); });
+countEl.innerText = all.length;
+if(all.length > 0 && !hasAvailableMoves()) {
+setTimeout(() => { alert("No moves left. Reshuffling..."); reshuffle(); }, 500);
+}
 }
 
 function handle(t) {
@@ -93,17 +96,11 @@ if(selected.dataset.v === t.dataset.v) {
 history.push([selected, t]); t.remove(); selected.remove();
 all = all.filter(x => x!==t && x!==selected); selected = null;
 playZenSound(800, "triangle", 1.2, 0.03); refresh();
-if(step === 1) nextStep();
 } else { selected.classList.remove('selected'); t.classList.add('selected'); selected = t; }
 } else { t.classList.add('selected'); selected = t; }
 }
 
-function undo() {
-if(!history.length) return;
-const last = history.pop(); last.forEach(t => { board.appendChild(t); all.push(t); });
-playZenSound(300); refresh();
-}
-
+function skipAll() { localStorage.setItem('zenDone', '1'); overlay.style.display = 'none'; }
 function showHint() {
 const free = all.filter(t => !isLocked(t));
 for(let i=0; i<free.length; i++) {
@@ -114,6 +111,7 @@ free[i].classList.add('hint'); free[j].classList.add('hint'); return;
 }
 }
 }
+function undo() { if(!history.length) return; const last = history.pop(); last.forEach(t => { board.appendChild(t); all.push(t); }); refresh(); }
 
 function init() {
 board.innerHTML = ''; all = []; history = [];
@@ -133,8 +131,10 @@ t.style.left = `${p.c * 72 + 50}px`; t.style.top = `${p.r * 78 + 30}px`;
 t.style.transform = `translateZ(${p.l * 12}px)`; t.style.zIndex = p.l * 10;
 t.onclick = () => handle(t); board.appendChild(t); all.push(t);
 });
+if(!hasAvailableMoves()) init(); // Recursive safeguard for initial state
 refresh();
-if(!localStorage.getItem('zenDone')) { overlay.style.display = 'flex'; document.getElementById('next-step').onclick = nextStep; }
+if(!localStorage.getItem('zenDone')) overlay.style.display = 'flex';
+document.getElementById('next-step').onclick = () => skipAll();
 }
 init();
 </script>
