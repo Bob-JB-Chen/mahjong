@@ -3,44 +3,139 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MAHJONG ZEN - INK EDITION</title>
+<title>MAHJONG ZEN</title>
 <style>
-:root { --t-w: 62px; --t-h: 84px; --zen-bg: #121212; --ivory: #fcfaf2; --gold: #c2902d; }
-body { margin: 0; background: var(--zen-bg); font-family: "Times New Roman", serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; color: #e5e5e5; }
-header { padding: 20px; text-align: center; background: rgba(0,0,0,0.5); border-bottom: 1px solid #222; }
-.zen-title { font-size: 24px; font-weight: 200; letter-spacing: 8px; color: #fff; }
-#game-area { position: relative; flex-grow: 1; display: flex; justify-content: center; align-items: center; perspective: 1500px; }
+:root { --t-w: 62px; --t-h: 84px; --zen-bg: #0c0a09; --ivory: #f5f5f4; --gold: #d97706; }
+body { margin: 0; background: var(--zen-bg); font-family: "Palatino", serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; color: #a8a29e; }
+header { padding: 20px; text-align: center; border-bottom: 1px solid #292524; background: rgba(0,0,0,0.4); }
+.zen-title { font-size: 24px; font-weight: 200; letter-spacing: 10px; color: #fafaf9; }
+#game-area { position: relative; flex-grow: 1; display: flex; justify-content: center; align-items: center; perspective: 1200px; }
 #board { position: relative; width: 400px; height: 500px; transform: rotateX(10deg); transform-style: preserve-3d; }
-.tile { position: absolute; width: var(--t-w); height: var(--t-h); background: var(--ivory); border-radius: 4px; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1.5px solid #222; box-shadow: 0 1px 0 #d1d5db, 1px 2px 0 #bbb, 2px 3px 0 #999, 4px 10px 25px rgba(0,0,0,0.9); transition: all 0.2s ease; }
-.tile .symbol { font-size: 56px; line-height: 0; user-select: none; filter: grayscale(100%) brightness(0) contrast(1000%); opacity: 0.9; transform: translateY(-4px); display: inline-block; }
-.tile.selected { background: #fff; transform: translateZ(35px) scale(1.05); box-shadow: 0 20px 50px rgba(255,255,255,0.2); border-color: var(--gold); }
-.tile.locked { filter: grayscale(100%) brightness(0.2); cursor: not-allowed; opacity: 0.5; }
-.tile.hint { outline: 4px solid var(--gold); box-shadow: 0 0 20px var(--gold); }
-#onboarding-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; transition: opacity 0.5s; }
-.step-box { max-width: 300px; padding: 20px; border: 1px solid var(--gold); background: rgba(28,25,23,0.9); }
-.step-text { font-size: 18px; margin-bottom: 20px; letter-spacing: 1px; line-height: 1.6; }
+.tile { position: absolute; width: var(--t-w); height: var(--t-h); background: var(--ivory); border-radius: 4px; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1.5px solid #1c1917; box-shadow: 0 1px 0 #d6d3d1, 1px 2px 0 #d6d3d1, 2px 3px 0 #78716c, 4px 10px 25px rgba(0,0,0,0.8); transition: all 0.25s ease; }
+.tile .symbol { font-size: 56px; line-height: 0; user-select: none; filter: grayscale(1) brightness(0) contrast(1000%); opacity: 0.85; transform: translateY(-4px); display: inline-block; }
+.tile.selected { background: #fff; transform: translateZ(30px) scale(1.05); box-shadow: 0 20px 50px rgba(217,119,6,0.3); border-color: var(--gold); }
+.tile.locked { filter: contrast(0.5) brightness(0.2); cursor: not-allowed; opacity: 0.4; }
+.tile.hint { outline: 4px solid var(--gold); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: 0.5; } }
+#onboarding-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.step-box { max-width: 320px; padding: 40px; border: 1px solid #444; background: #1c1917; box-shadow: 0 0 50px rgba(0,0,0,1); }
+.step-text { font-size: 18px; margin-bottom: 30px; letter-spacing: 2px; color: #d6d3d1; }
 .pulse-target { z-index: 2001 !important; box-shadow: 0 0 30px #fff !important; pointer-events: auto !important; }
-footer { padding: 35px; display: flex; justify-content: center; gap: 20px; background: #000; }
-.zen-btn { padding: 12px 35px; background: transparent; border: 1px solid #333; color: #666; font-size: 12px; letter-spacing: 4px; cursor: pointer; transition: 0.3s; }
-.zen-btn:hover { color: #fff; border-color: #fcfaf2; }
+footer { padding: 30px; display: flex; justify-content: center; gap: 15px; }
+.zen-btn { padding: 10px 25px; background: transparent; border: 1px solid #444; color: #78716c; font-size: 12px; letter-spacing: 3px; cursor: pointer; transition: 0.3s; }
+.zen-btn:hover { color: #fafaf9; border-color: #a8a29e; background: rgba(255,255,255,0.05); }
+.btn-skip { margin-top: 15px; border: none; text-decoration: underline; font-size: 11px; opacity: 0.5; }
 </style>
 </head>
 <body>
-<div id="onboarding-overlay"><div class="step-box"><div id="step-msg" class="step-text">Welcome to Mahjong Zen.</div><button class="zen-btn" id="next-step">NEXT</button></div></div>
-<header><div class="zen-title">MAHJONG ZEN</div><div style="font-size: 11px; letter-spacing: 3px; color: #444; margin-top:5px;">REMAINING: <span id="count">0</span></div></header>
+<div id="onboarding-overlay" onclick="handleOverlayClick(event)">
+<div class="step-box">
+<div id="step-msg" class="step-text">Welcome to Mahjong Zen.</div>
+<button class="zen-btn" id="next-step">BEGIN</button>
+<button class="zen-btn btn-skip" onclick="skipAll()">Skip Tutorial</button>
+</div>
+</div>
+<header><div class="zen-title">MAHJONG ZEN</div><div style="font-size: 11px; letter-spacing: 4px; margin-top:5px;">REMAINING: <span id="count">0</span></div></header>
 <div id="game-area"><div id="board"></div></div>
 <footer><button class="zen-btn" onclick="undo()">UNDO</button><button class="zen-btn" onclick="showHint()">HINT</button><button class="zen-btn" onclick="init()">RESET</button></footer>
 <script>
-const board = document.getElementById('board'); const countEl = document.getElementById('count'); const overlay = document.getElementById('onboarding-overlay'); const stepMsg = document.getElementById('step-msg'); const nextBtn = document.getElementById('next-step');
+const board = document.getElementById('board'); const countEl = document.getElementById('count');
+const overlay = document.getElementById('onboarding-overlay'); const stepMsg = document.getElementById('step-msg');
 const mahjongs = ['🀄','🀅','🀆','🀇','🀈','🀉','🀊','🀋','🀌','🀝','🀞','🀟','🀐','🀑','🀒','🀓','🀔','🀕','🀖','🀗','🀙','🀚','🀛'];
-let selected = null; let all = []; let history = []; let currentStep = 0;function playSound(f) { try { const c = new(window.AudioContext||window.webkitAudioContext)(); const o = c.createOscillator(); const g = c.createGain(); o.frequency.value = f; g.gain.value = 0.005; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+0.05); } catch(e){} }
-function isLocked(t) { const {r,c,l} = t.dataset; const up = all.some(o => o.dataset.l > l && Math.abs(o.dataset.r-r)<0.7 && Math.abs(o.dataset.c-c)<0.7); if(up) return true; const left = all.some(o => o.dataset.l == l && Math.abs(o.dataset.r-r)<0.5 && o.dataset.c < c && o.dataset.c > c-1.1); const right = all.some(o => o.dataset.l == l && Math.abs(o.dataset.r-r)<0.5 && o.dataset.c > c && o.dataset.c < c+1.1); return left && right; }
+let selected = null; let all = []; let history = []; let step = 0; let audioCtx = null;
+
+function initAudio() { if(!audioCtx) audioCtx = new(window.AudioContext||window.webkitAudioContext)(); }
+function playZenSound(f, type="sine", d=0.5, v=0.02) {
+initAudio(); const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+o.type = type; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+g.gain.setValueAtTime(v, audioCtx.currentTime);
+g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d);
+o.connect(g); g.connect(audioCtx.destination);
+o.start(); o.stop(audioCtx.currentTime + d);
+}
+
+function isLocked(t) {
+const {r,c,l} = t.dataset;
+const up = all.some(o => o.dataset.l > l && Math.abs(o.dataset.r-r)<0.7 && Math.abs(o.dataset.c-c)<0.7);
+if(up) return true;
+const left = all.some(o => o.dataset.l == l && Math.abs(o.dataset.r-r)<0.5 && o.dataset.c < c && o.dataset.c > c-1.1);
+const right = all.some(o => o.dataset.l == l && Math.abs(o.dataset.r-r)<0.5 && o.dataset.c > c && o.dataset.c < c+1.1);
+return left && right;
+}
+
 function refresh() { all.forEach(t => t.classList.toggle('locked', isLocked(t))); countEl.innerText = all.length; }
-function handle(t) { if (t.classList.contains('locked')) return; if (selected === t) { t.classList.remove('selected'); selected = null; return; } playSound(selected ? 500 : 400); if (selected) { if (selected.dataset.v === t.dataset.v) { history.push([selected, t]); t.remove(); selected.remove(); all = all.filter(x => x!==t && x!==selected); selected = null; playSound(800); refresh(); if(currentStep === 1) nextOnboardingStep(); } else { selected.classList.remove('selected'); t.classList.add('selected'); selected = t; } } else { t.classList.add('selected'); selected = t; } }
-function nextOnboardingStep() { currentStep++; if (currentStep === 1) { stepMsg.innerText = "Match two identical, free tiles to clear them."; nextBtn.style.display = 'none'; all.forEach(t => t.style.pointerEvents = 'none'); const pairValue = all.find(t => !isLocked(t)).dataset.v; const pair = all.filter(t => t.dataset.v === pairValue).slice(0,2); pair.forEach(t => { t.classList.add('pulse-target'); t.style.pointerEvents = 'auto'; }); } else if (currentStep === 2) { overlay.style.display = 'flex'; nextBtn.style.display = 'block'; all.forEach(t => t.classList.remove('pulse-target')); stepMsg.innerText = "Locked tiles (grey) cannot be picked. Clear their neighbors first."; } else { overlay.style.display = 'none'; localStorage.setItem('zenMahjongDone', 'true'); all.forEach(t => t.style.pointerEvents = 'auto'); } }
-function undo() { if(!history.length) return; const last = history.pop(); last.forEach(t => { board.appendChild(t); all.push(t); }); playSound(300); refresh(); }
-function showHint() { all.forEach(t => t.classList.remove('hint')); const free = all.filter(t => !isLocked(t)); for(let i=0; i<free.length; i++) { for(let j=i+1; j<free.length; j++) { if(free[i].dataset.v === free[j].dataset.v) { free[i].classList.add('hint'); free[j].classList.add('hint'); return; } } } }
-function init() { board.innerHTML = ''; all = []; history = []; const layout = []; for(let r=0;r<6;r++) for(let c=0;c<4;c++) layout.push({r,c,l:0}); for(let r=1;r<5;r++) for(let c=1;c<3;c++) layout.push({r:r+0.2,c:c+0.2,l:1}); for(let r=2;r<4;r++) layout.push({r:r+0.4,c:1.7,l:2}); let pool = []; let n = Math.floor(layout.length/2); for(let i=0; i<n; i++) { const v = mahjongs[i % mahjongs.length]; pool.push(v,v); } if(layout.length % 2) pool.push(mahjongs[0]); pool.sort(() => Math.random() - 0.5); layout.forEach((p, i) => { const t = document.createElement('div'); t.className = 'tile'; t.innerHTML = `<span class="symbol">${pool[i]}</span>`; Object.assign(t.dataset, {v:pool[i], r:p.r, c:p.c, l:p.l}); t.style.left = `${p.c * 72 + 50}px`; t.style.top = `${p.r * 78 + 30}px`; t.style.transform = `translateZ(${p.l * 12}px)`; t.style.zIndex = p.l * 10; t.onclick = () => handle(t); board.appendChild(t); all.push(t); }); refresh(); if (!localStorage.getItem('zenMahjongDone')) { overlay.style.display = 'flex'; nextBtn.onclick = nextOnboardingStep; } }
+
+function handleOverlayClick(e) { if(e.target.id === 'onboarding-overlay') nextStep(); }
+function skipAll() { localStorage.setItem('zenDone', '1'); overlay.style.display = 'none'; init(); }
+
+function nextStep() {
+step++; playZenSound(200 + step * 50);
+if(step === 1) {
+stepMsg.innerText = "Match two free tiles to clear them.";
+document.getElementById('next-step').style.display = 'none';
+all.forEach(t => t.style.pointerEvents = 'none');
+const val = all.find(t => !isLocked(t)).dataset.v;
+all.filter(t => t.dataset.v === val).slice(0,2).forEach(t => { t.classList.add('pulse-target'); t.style.pointerEvents = 'auto'; });
+} else if(step === 2) {
+overlay.style.display = 'flex'; stepMsg.innerText = "Excellent. Locked tiles are dark. Free them by clearing neighbors.";
+document.getElementById('next-step').style.display = 'block';
+all.forEach(t => t.classList.remove('pulse-target'));
+} else { skipAll(); }
+}
+
+function handle(t) {
+if(t.classList.contains('locked')) return;
+initAudio();
+if(selected === t) { t.classList.remove('selected'); selected = null; return; }
+playZenSound(selected ? 600 : 400);
+if(selected) {
+if(selected.dataset.v === t.dataset.v) {
+history.push([selected, t]); t.remove(); selected.remove();
+all = all.filter(x => x!==t && x!==selected); selected = null;
+playZenSound(800, "triangle", 1.2, 0.03); refresh();
+if(step === 1) nextStep();
+} else { selected.classList.remove('selected'); t.classList.add('selected'); selected = t; }
+} else { t.classList.add('selected'); selected = t; }
+}
+
+function undo() {
+if(!history.length) return;
+const last = history.pop(); last.forEach(t => { board.appendChild(t); all.push(t); });
+playZenSound(300); refresh();
+}
+
+function showHint() {
+const free = all.filter(t => !isLocked(t));
+for(let i=0; i<free.length; i++) {
+for(let j=i+1; j<free.length; j++) {
+if(free[i].dataset.v === free[j].dataset.v) {
+free[i].classList.add('hint'); free[j].classList.add('hint'); return;
+}
+}
+}
+}
+
+function init() {
+board.innerHTML = ''; all = []; history = [];
+const layout = [];
+for(let r=0;r<6;r++) for(let c=0;c<4;c++) layout.push({r,c,l:0});
+for(let r=1;r<5;r++) for(let c=1;c<3;c++) layout.push({r:r+0.2,c:c+0.2,l:1});
+for(let r=2;r<4;r++) layout.push({r:r+0.4,c:1.7,l:2});
+let pool = []; let n = Math.floor(layout.length/2);
+for(let i=0; i<n; i++) { const v = mahjongs[i % mahjongs.length]; pool.push(v,v); }
+if(layout.length % 2) pool.push(mahjongs[0]);
+pool.sort(() => Math.random() - 0.5);
+layout.forEach((p, i) => {
+const t = document.createElement('div'); t.className = 'tile';
+t.innerHTML = `<span class="symbol">${pool[i]}</span>`;
+Object.assign(t.dataset, {v:pool[i], r:p.r, c:p.c, l:p.l});
+t.style.left = `${p.c * 72 + 50}px`; t.style.top = `${p.r * 78 + 30}px`;
+t.style.transform = `translateZ(${p.l * 12}px)`; t.style.zIndex = p.l * 10;
+t.onclick = () => handle(t); board.appendChild(t); all.push(t);
+});
+refresh();
+if(!localStorage.getItem('zenDone')) { overlay.style.display = 'flex'; document.getElementById('next-step').onclick = nextStep; }
+}
 init();
 </script>
 </body>
