@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🏗️ VITA MAHJONG WEB 3D</title>
+<style>
+:root { --tile-w: 60px; --tile-h: 80px; --bg: #1a252b; }
+body { margin: 0; background: var(--bg); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
+#game-header { width: 100%; padding: 15px; text-align: center; background: #2c3e50; color: #40e0d0; font-size: 20px; font-weight: bold; }
+#game-container { position: relative; flex-grow: 1; width: 100%; display: flex; justify-content: center; align-items: center; perspective: 1000px; }
+#board { position: relative; width: 380px; height: 480px; transform: rotateX(15deg); transform-style: preserve-3d; }
+.tile { position: absolute; width: var(--tile-w); height: var(--tile-h); background: #fff; border: 2px solid #333; border-radius: 6px; box-shadow: 2px 2px 0 #999, 4px 6px 10px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; font-size: 45px; cursor: pointer; transition: all 0.1s; }
+.tile.selected { background: #ffee58; transform: translateZ(10px) scale(1.1); z-index: 1000 !important; }
+.tile.locked { filter: grayscale(0.8) brightness(0.5); cursor: not-allowed; }
+#controls { padding: 20px; }
+button { padding: 10px 40px; font-size: 18px; border-radius: 20px; border: none; background: #40e0d0; color: #1a252b; font-weight: bold; }
+</style>
+</head>
+<body>
+<div id="game-header">🏗️ VITA MAHJONG 3D</div>
+<div id="game-container"><div id="board"></div></div>
+<div id="controls"><button onclick="init()">重新洗牌</button></div>
+<script>
+const board = document.getElementById('board');
+const tilesData = ['🀄','🀅','🀆','🀇','🀈','🀉','🀊','🀋','🀌','🀝','🀞','🀟','🀀','🀁','🀂','🀃','🀐','🀑'];
+let selected = null; let all = [];
+function isLocked(t) {
+const {r,c,l} = t.dataset;
+const up = all.some(o => o.dataset.l > l && Math.abs(o.dataset.r-r)<0.8 && Math.abs(o.dataset.c-c)<0.8);
+if(up) return true;
+const left = all.some(o => o.dataset.l == l && Math.abs(o.dataset.r-r)<0.5 && (o.dataset.c < c && o.dataset.c > c-1.1));
+const right = all.some(o => o.dataset.l == l && Math.abs(o.dataset.r-r)<0.5 && (o.dataset.c > c && o.dataset.c < c+1.1));
+return left && right;
+}
+function refresh() { all.forEach(t => t.classList.toggle('locked', isLocked(t))); }
+function clickTile(t) {
+if(t.classList.contains('locked')) return;
+if(selected === t) { t.classList.remove('selected'); selected = null; return; }
+if(selected) {
+if(selected.dataset.v === t.dataset.v) {
+t.remove(); selected.remove();
+all = all.filter(x => x!==t && x!==selected);
+selected = null; refresh();
+} else { selected.classList.remove('selected'); t.classList.add('selected'); selected = t; }
+} else { t.classList.add('selected'); selected = t; }
+}
+function init() {
+board.innerHTML = ''; all = [];
+const layout = [];
+for(let r=0;r<4;r++) for(let c=0;c<4;c++) layout.push({r,c,l:0});
+for(let r=1;r<3;r++) for(let c=1;c<3;c++) layout.push({r:r+0.2,c:c+0.2,l:1});
+let p = []; layout.slice(0,Math.floor(layout.length/2)).forEach((_,i)=>p.push(tilesData[i%tilesData.length],tilesData[i%tilesData.length]));
+if(layout.length%2) p.push(tilesData[0]);
+p.sort(()=>Math.random()-0.5);
+layout.forEach((pos,i)=>{
+const t = document.createElement('div'); t.className='tile'; t.innerHTML=p[i];
+Object.assign(t.dataset,{v:p[i],r:pos.r,c:pos.c,l:pos.l});
+t.style.left=`${pos.c*70+50}px`; t.style.top=`${pos.r*90+50}px`;
+t.style.transform=`translateZ(${pos.l*12}px)`; t.style.zIndex=pos.l*10;
+t.onclick=()=>clickTile(t); board.appendChild(t); all.push(t);
+});
+refresh();
+}
+init();
+</script>
+</body>
+</html>
